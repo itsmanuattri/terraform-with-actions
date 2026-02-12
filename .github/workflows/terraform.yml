@@ -7,39 +7,56 @@ on:
 
 jobs:
   plan:
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: hashicorp/setup-terraform@v2
+
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-      - run: terraform init -input=false
+
+      - name: Terraform Init
+        run: terraform init -input=false
         working-directory: env/dev
-      - run: terraform workspace select dev || terraform workspace new dev
+
+      - name: Select Workspace
+        run: terraform workspace select dev || terraform workspace new dev
         working-directory: env/dev
-      - run: terraform plan -no-color
+
+      - name: Terraform Plan
+        run: terraform plan -no-color
         working-directory: env/dev
 
   apply:
     if: github.ref == 'refs/heads/main'
     needs: plan
     runs-on: ubuntu-latest
-    environment: production   #  require manual approval in GitHub
+    environment: production
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: hashicorp/setup-terraform@v2
+
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-      - run: terraform init -input=false
+
+      - name: Terraform Init
+        run: terraform init -input=false
         working-directory: env/dev
-      - run: terraform workspace select dev || terraform workspace new dev
+
+      - name: Select Workspace
+        run: terraform workspace select dev || terraform workspace new dev
         working-directory: env/dev
-      - run: terraform apply -auto-approve
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
         working-directory: env/dev
